@@ -53,15 +53,14 @@ st.markdown("""
 
 
 @st.cache_resource
-   def load_data():
-       """加载数据"""
-       # 使用相对路径，兼容本地和云端部署
-       import os
-       db_path = os.path.join(os.path.dirname(__file__), 'insurance_data.db')
-       conn = sqlite3.connect(db_path, check_same_thread=False)
-       query = "SELECT * FROM fulfillment_ratios"
-       df = pd.read_sql_query(query, conn)
-       return df
+def load_data():
+    """加载数据"""
+    import os
+    db_path = os.path.join(os.path.dirname(__file__), 'insurance_data.db')
+    conn = sqlite3.connect(db_path, check_same_thread=False)
+    query = "SELECT * FROM fulfillment_ratios"
+    df = pd.read_sql_query(query, conn)
+    return df
 
 
 def get_status_display(status):
