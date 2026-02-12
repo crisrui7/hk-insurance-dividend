@@ -64,7 +64,7 @@ class DatabaseRestructurer:
             -- 时间维度
             data_year INTEGER NOT NULL,
             purchase_year INTEGER NOT NULL,
-            policy_year INTEGER NOT NULL,
+            policy_year INTEGER,  -- 允许NULL，因为周大福数据没有policy_year
             
             -- 分红实现率（宽格式）
             reversionary_bonus_rate INTEGER,

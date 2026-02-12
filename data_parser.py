@@ -88,13 +88,13 @@ class DataParser:
             category = self._normalize_category(item.get('type', 'Dividend'))
             
             record = {
-                'company': '友邦保险',
+                'company': '周大福人寿',
                 'product_name': product_name,
                 'product_type': None,
                 'category': category,
                 'currency': currency,
                 'policy_year': policy_year,
-                'purchase_year': purchase_year,  # 友邦数据包含购买年份
+                'purchase_year': purchase_year,  # 周大福数据包含购买年份
                 'fulfillment_rate': fulfillment_rate,
                 'status': status,
                 'data_year': self.data_year,
@@ -326,14 +326,21 @@ class DataValidator:
         
         # 必填字段检查
         required_fields = ['company', 'product_name', 'category', 'currency', 
-                          'policy_year', 'status', 'data_year']
+                          'status', 'data_year']
         for field in required_fields:
             if not record.get(field):
                 errors.append(f"缺少必填字段: {field}")
         
+        # policy_year和purchase_year至少要有一个
+        if record.get('policy_year') is None and record.get('purchase_year') is None:
+            errors.append("缺少policy_year或purchase_year")
+        
         # 数据类型检查
-        if not isinstance(record.get('policy_year'), int):
-            errors.append("policy_year必须是整数")
+        if record.get('policy_year') is not None and not isinstance(record.get('policy_year'), int):
+            errors.append("policy_year必须是整数或None")
+        
+        if record.get('purchase_year') is not None and not isinstance(record.get('purchase_year'), int):
+            errors.append("purchase_year必须是整数或None")
         
         if record.get('fulfillment_rate') is not None:
             if not isinstance(record['fulfillment_rate'], int):
