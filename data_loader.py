@@ -40,13 +40,14 @@ class DatabaseLoader:
                 product_type TEXT,
                 category TEXT NOT NULL,
                 currency TEXT NOT NULL,
-                policy_year INTEGER NOT NULL,
+                policy_year INTEGER,
+                purchase_year INTEGER,
                 fulfillment_rate INTEGER,
                 status TEXT NOT NULL,
                 data_year INTEGER NOT NULL,
                 last_updated TEXT NOT NULL,
                 data_source TEXT,
-                UNIQUE(company, product_name, category, currency, policy_year, data_year)
+                UNIQUE(company, product_name, category, currency, policy_year, purchase_year, data_year)
             )
         ''')
         
@@ -96,9 +97,9 @@ class DatabaseLoader:
                     self.cursor.execute('''
                         INSERT INTO fulfillment_ratios 
                         (company, product_name, product_type, category, currency, 
-                         policy_year, fulfillment_rate, status, data_year, 
+                         policy_year, purchase_year, fulfillment_rate, status, data_year, 
                          last_updated, data_source)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ''', (
                         record['company'],
                         record['product_name'],
@@ -106,6 +107,7 @@ class DatabaseLoader:
                         record['category'],
                         record['currency'],
                         record['policy_year'],
+                        record['purchase_year'],
                         record['fulfillment_rate'],
                         record['status'],
                         record['data_year'],
@@ -127,6 +129,7 @@ class DatabaseLoader:
                           AND category = ? 
                           AND currency = ? 
                           AND policy_year = ? 
+                          AND purchase_year = ?
                           AND data_year = ?
                     ''', (
                         record['fulfillment_rate'],
@@ -138,6 +141,7 @@ class DatabaseLoader:
                         record['category'],
                         record['currency'],
                         record['policy_year'],
+                        record['purchase_year'],
                         record['data_year']
                     ))
                     

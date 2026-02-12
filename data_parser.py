@@ -71,8 +71,9 @@ class DataParser:
             # 提取货币
             currency = self._normalize_currency(item.get('currency', ''))
             
-            # 提取保单年期
-            policy_year = item.get('policy_year', 0)
+            # 提取购买年份（周大福的policy_year就是购买年份）
+            purchase_year = item.get('policy_year', None)
+            policy_year = None  # 周大福数据不包含保单年期信息
             
             # 提取分红实现率
             ratio = item.get('ratio')
@@ -87,15 +88,16 @@ class DataParser:
             category = self._normalize_category(item.get('type', 'Dividend'))
             
             record = {
-                'company': '周大福人寿',
+                'company': '友邦保险',
                 'product_name': product_name,
                 'product_type': None,
                 'category': category,
                 'currency': currency,
                 'policy_year': policy_year,
+                'purchase_year': purchase_year,  # 友邦数据包含购买年份
                 'fulfillment_rate': fulfillment_rate,
                 'status': status,
-                'data_year': item.get('report_year', self.data_year),
+                'data_year': self.data_year,
                 'last_updated': self.last_updated,
                 'data_source': item.get('product_name_citation', '')
             }
@@ -128,9 +130,9 @@ class DataParser:
                 currency_raw = item.get('currency', '所有')
                 currency = self._normalize_currency(currency_raw)
                 
-                # 解析保单年期
+                # 解析保单年期和购买年份
                 policy_year_str = item.get('policy_year', '')
-                policy_year, year_value = self._parse_aia_policy_year(policy_year_str)
+                policy_year, purchase_year = self._parse_aia_policy_year(policy_year_str)
                 
                 # 解析分红实现率
                 ratio_str = item.get('fulfillment_ratio', '')
@@ -143,6 +145,7 @@ class DataParser:
                     'category': default_category,
                     'currency': currency,
                     'policy_year': policy_year,
+                    'purchase_year': purchase_year,
                     'fulfillment_rate': fulfillment_rate,
                     'status': status,
                     'data_year': self.data_year,
@@ -167,9 +170,9 @@ class DataParser:
             
             # 遍历每个年期的数据
             for ratio_item in product.get('fulfillment_ratios', []):
-                # 解析保单年期
+                # 解析保单年期和购买年份
                 policy_year_str = ratio_item.get('policy_year', '')
-                policy_year = self._parse_prudential_policy_year(policy_year_str)
+                policy_year, purchase_year = self._parse_prudential_policy_year(policy_year_str)
                 
                 # 解析分红实现率
                 percentage_str = ratio_item.get('percentage', '')
@@ -182,6 +185,7 @@ class DataParser:
                     'category': category,
                     'currency': currency,
                     'policy_year': policy_year,
+                    'purchase_year': purchase_year,
                     'fulfillment_rate': fulfillment_rate,
                     'status': status,
                     'data_year': self.data_year,
@@ -265,17 +269,21 @@ class DataParser:
         
         return 0, year_value
     
-    def _parse_prudential_policy_year(self, policy_year_str: str) -> int:
+    def _parse_prudential_policy_year(self, policy_year_str: str) -> tuple[int, Optional[int]]:
         """解析保诚保单年期字符串
         
-        示例: "1 (2023)" -> 1
-              "10+ (2014 之前)" -> 10
+        示例: "1 (2023)" -> (1, 2023)
+              "10+ (2014 之前)" -> (10, 2014)
         """
-        # 提取数字
+        # 提取购买年份
+        year_match = re.search(r'\((\d{4})', policy_year_str)
+        purchase_year = int(year_match.group(1)) if year_match else None
+        
+        # 提取保单年期数字
         match = re.search(r'(\d+)', policy_year_str)
-        if match:
-            return int(match.group(1))
-        return 0
+        policy_year = int(match.group(1)) if match else 0
+        
+        return policy_year, purchase_year
     
     def _parse_prudential_product_name(self, product_name_raw: str) -> tuple[str, str, str]:
         """解析保诚产品名称
